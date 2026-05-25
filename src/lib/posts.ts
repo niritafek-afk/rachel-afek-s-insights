@@ -1,10 +1,12 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export type Post = {
   slug: string;
   title: string;
   excerpt: string;
   body: string;
   category: string;
-  date: string; // ISO
+  date: string; // ISO yyyy-mm-dd
   tags: string[];
   image?: string;
   featured?: boolean;
@@ -12,155 +14,85 @@ export type Post = {
 
 export const CATEGORIES = ["פוליטיקה", "חברה", "תרבות", "אקטואליה"] as const;
 
-const SEED_POSTS: Post[] = [
-  {
-    slug: "between-silence-and-cry",
-    title: "בין השתיקה לזעקה",
-    excerpt:
-      "על המרחב הציבורי שמצטמצם, על הקול הנשי שמסרב להישתק, ועל המחיר של אמירה אישית בעידן של הקצנה.",
-    body: `יש רגעים בהם השתיקה היא הבחירה הקלה. היא נראית מנומסת, אחראית, אפילו חכמה. אבל בשנים האחרונות אני מוצאת את עצמי חוזרת ושואלת: מה מחיר השתיקה הזו, ומי משלם אותו בסופו של דבר.
+type Row = {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body: string | null;
+  category: string;
+  date: string;
+  tags: string[] | null;
+  image: string | null;
+  featured: boolean | null;
+};
 
-המרחב הציבורי בישראל הצטמצם. לא בבת אחת, לא בהכרזה דרמטית, אלא בהדרגה אטית של ויתורים קטנים. ויתור על דיון, ויתור על ניואנס, ויתור על האפשרות להחזיק שתי אמיתות באותה הנשימה. ובתוך הצמצום הזה, הקול הנשי – הקול שמסרב לבחור בין כעס לרגישות, בין עמדה לאמפתיה – נדחק לשוליים.
+function rowToPost(r: Row): Post {
+  return {
+    slug: r.slug,
+    title: r.title,
+    excerpt: r.excerpt ?? "",
+    body: r.body ?? "",
+    category: r.category,
+    date: r.date,
+    tags: r.tags ?? [],
+    image: r.image ?? undefined,
+    featured: r.featured ?? false,
+  };
+}
 
-## על מה שנשאר מאחור
-
-אני כותבת מתוך בית. מתוך מטבח, מתוך חיים שלמים שמתרחשים סביב הכתיבה ולא רק בתוכה. וזו, אני חושבת, גם נקודת המבט שאני מבקשת להציע כאן: מבט שאינו מתיימר להיות אובייקטיבי, אבל מתעקש להיות הוגן.
-
-> "אנחנו לא מחויבות לסיים את העבודה, אבל גם איננו רשאיות להיבטל ממנה." – פרקי אבות, בנוסח שלי.
-
-הזעקה, מצד שני, היא פיתוי משלה. קל לצעוק. קשה לחשוב. וכל מי שכותבת היום במרחב הציבורי יודעת עד כמה האלגוריתם מתגמל את הקיצוניות ומעניש את הספק.
-
-## בחירה שלישית
-
-מה שאני מנסה לעשות בבלוג הזה הוא לסמן בחירה שלישית. לא שתיקה, ולא זעקה. כתיבה איטית. כתיבה שמכבדת את הקורא, ושמניחה שגם הוא יודע להחזיק שאלה פתוחה לכמה דקות לפני שהוא דורש תשובה.
-
-אני לא יודעת אם זה יחזיק מעמד. אני יודעת שזה מה שאני יודעת לעשות.`,
-    category: "חברה",
-    date: "2026-05-18",
-    tags: ["שיח ציבורי", "כתיבה", "פמיניזם"],
-    featured: true,
-  },
-  {
-    slug: "democracy-in-small-letters",
-    title: "דמוקרטיה באותיות קטנות",
-    excerpt:
-      "לא בכנסת ולא בהפגנה – הדמוקרטיה היומיומית מתרחשת בוועד הבית, בהורים בגן, בשיחה עם השכן. ועל זה אף אחד לא מדבר.",
-    body: `כשאנחנו מדברים על דמוקרטיה, אנחנו כמעט תמיד מדברים על הדמוקרטיה הגדולה. בחירות, חוקה, רשויות. אבל יש דמוקרטיה אחרת, קטנה יותר, שמתרחשת מתחתינו כל יום, וכמעט אף אחד לא מבחין בה.
-
-זו הדמוקרטיה של ועד הבית. של ההורים בגן. של קבוצת השכונה בוואטסאפ. במקומות האלה אנחנו לומדים – או לא לומדים – מה זה לחיות לצד מי שלא מסכימים איתנו.
-
-## מה שלמדתי בוועד הבית
-
-שש שנים הייתי בוועד הבית. נכנסתי כי "מישהו צריך", ויצאתי עם הרבה יותר ממה שתיארתי לעצמי. למדתי שלאדם שצועק הכי חזק יש לפעמים את הטענה הכי חלשה. למדתי שאפשר לקבל החלטה גם בלי הסכמה מלאה. ולמדתי שכשאתה רואה את שכניך כבני אדם – לא כעמדות – הכל משתנה.
-
-זה לא רומנטי. זה לא ויראלי. אבל זה, אני חושבת, המקום היחיד שבו דמוקרטיה באמת נבנית.`,
-    category: "פוליטיקה",
-    date: "2026-05-10",
-    tags: ["דמוקרטיה", "קהילה"],
-  },
-  {
-    slug: "reading-in-an-age-of-noise",
-    title: "לקרוא בעידן של רעש",
-    excerpt:
-      "ספר אחד בשבוע. לא כיומרה אינטלקטואלית, אלא כפעולת התנגדות שקטה למיידיות שמכלה אותנו.",
-    body: `החלטתי לפני שנה לקרוא ספר אחד בשבוע. לא בשביל להתפאר ברשימת קריאה, אלא בשביל לראות אם אני עוד יכולה.
-
-מסתבר שכן. בקושי. בהתחלה הרגשתי כמו ספורטאית שחזרה לאימונים אחרי פציעה ארוכה. המוח שלי, שהתרגל לסקרול, התנגד לעמוד שלם של טקסט. אחרי עשרים דקות הרגשתי שהתרוקנתי.
-
-## מה שגיליתי
-
-הקריאה האטית החזירה לי משהו שלא ידעתי שאיבדתי – את היכולת להחזיק רעיון מורכב לאורך זמן. את הסבלנות לתת לסופר לבנות את הטיעון שלו לפני שאני מחליטה אם אני מסכימה.
-
-זה לא קל. זה גם לא יוקרתי. בעיני זה צורה של התנגדות.`,
-    category: "תרבות",
-    date: "2026-04-28",
-    tags: ["קריאה", "ספרים", "תרבות"],
-  },
-  {
-    slug: "what-the-news-doesnt-show",
-    title: "מה שהחדשות לא מראות",
-    excerpt: "על הפער בין הסיפור הגדול שמסופר במהדורה לבין הסיפורים הקטנים שמתרחשים מאחורי הקלעים.",
-    body: `אחרי שנים של צריכת חדשות אובססיבית, החלטתי לעשות ניסוי: חודש בלי מהדורה. בלי פוש, בלי כותרות. רק עיתון אחד ביום, על הנייר, על ארוחת הבוקר.
-
-מה שגיליתי הפתיע אותי. לא שהפסקתי לדעת מה קורה. הפסקתי לחיות בתחושת חירום מתמדת. הפסקתי להתרגש מכל הברקה ולחזות בכל קטסטרופה.
-
-## הסיפור שלא מסופר
-
-החדשות מספרות לנו את הסיפור הגדול. אבל מתחתיו יש אלפי סיפורים קטנים – של אנשים שממשיכים ללכת לעבודה, לגדל ילדים, להחזיק קהילה. הסיפורים האלה לא ויראליים. הם פשוט החיים.`,
-    category: "אקטואליה",
-    date: "2026-04-15",
-    tags: ["מדיה", "חיי יומיום"],
-  },
-  {
-    slug: "between-generations",
-    title: "בין הדורות",
-    excerpt: "שיחה עם אמי על מה שהשתנה, ועל מה שעדיין, להפתעתי, נשאר.",
-    body: `אמי בת שבעים ושלוש. אני בת ארבעים ושבע. בתי בת תשע עשרה. שלושתנו ישבנו שבת אחת סביב השולחן, ודיברנו על מה זה להיות אישה בישראל.
-
-מה שגיליתי הוא שהפערים בינינו פחותים ממה שחשבתי, ושהדמיון – גדול ממה שהעזתי לקוות.
-
-## שלוש נשים, סיפור אחד
-
-אמא שלי נלחמה בשביל הזכות לעבוד. אני נלחמתי בשביל הזכות לבחור. בתי, מסתבר, נלחמת בשביל הזכות להגיד "לא יודעת עדיין". ויש בזה משהו יפה. גם משהו מטריד.`,
-    category: "חברה",
-    date: "2026-03-30",
-    tags: ["משפחה", "דורות", "נשים"],
-  },
-  {
-    slug: "the-art-of-disagreement",
-    title: "אמנות אי-ההסכמה",
-    excerpt:
-      "כיצד אבד לנו הכלי הבסיסי ביותר של הדיון הציבורי, ואיך אפשר אולי לבנות אותו מחדש – שיחה אחת בכל פעם.",
-    body: `פעם, בילדותי, ישבו אצלנו בסלון אנשים שלא הסכימו. הם דיברו עד מאוחר. שתו תה. צחקו. ולמחרת התקשרו אחד לשנייה.
-
-היום אני מסתכלת סביבי וקשה לי למצוא דוגמה לזה. אנשים מסכימים – לגמרי. או רבים – לגמרי. המרחב באמצע, של אי-הסכמה תרבותית, נעלם כמעט.
-
-## איך מחזירים את זה
-
-אני לא יודעת. אבל אני מתעקשת לנסות. בכל שיחה. כי בלי המרחב הזה, אין שום סיכוי לחברה שאני רוצה לחיות בה.`,
-    category: "פוליטיקה",
-    date: "2026-03-12",
-    tags: ["שיח", "פוליטיקה"],
-  },
-];
-
-const STORAGE_KEY = "rachel_afek_posts_v1";
-
-function loadCustomPosts(): Post[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as Post[];
-  } catch {
+export async function getAllPosts(): Promise<Post[]> {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("slug,title,excerpt,body,category,date,tags,image,featured")
+    .order("date", { ascending: false });
+  if (error) {
+    console.error("getAllPosts", error);
     return [];
   }
+  return (data ?? []).map(rowToPost);
 }
 
-export function getAllPosts(): Post[] {
-  const custom = loadCustomPosts();
-  const all = [...custom, ...SEED_POSTS];
-  return all.sort((a, b) => (a.date < b.date ? 1 : -1));
+export async function getFeaturedPost(): Promise<Post | null> {
+  const all = await getAllPosts();
+  return all.find((p) => p.featured) ?? all[0] ?? null;
 }
 
-export function getFeaturedPost(): Post {
-  const all = getAllPosts();
-  return all.find((p) => p.featured) ?? all[0];
+export async function getPostBySlug(slug: string): Promise<Post | null> {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("slug,title,excerpt,body,category,date,tags,image,featured")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) {
+    console.error("getPostBySlug", error);
+    return null;
+  }
+  return data ? rowToPost(data) : null;
 }
 
-export function getPostBySlug(slug: string): Post | undefined {
-  return getAllPosts().find((p) => p.slug === slug);
-}
-
-export function addPost(post: Omit<Post, "slug"> & { slug?: string }): Post {
+export async function addPost(
+  post: Omit<Post, "slug"> & { slug?: string },
+): Promise<Post> {
   const slug =
-    post.slug ||
+    post.slug?.trim() ||
     `post-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-  const next: Post = { ...post, slug };
-  const custom = loadCustomPosts();
-  custom.unshift(next);
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(custom));
-  return next;
+  const { data, error } = await supabase
+    .from("posts")
+    .insert({
+      slug,
+      title: post.title,
+      excerpt: post.excerpt,
+      body: post.body,
+      category: post.category,
+      date: post.date,
+      tags: post.tags,
+      image: post.image ?? null,
+      featured: post.featured ?? false,
+    })
+    .select("slug,title,excerpt,body,category,date,tags,image,featured")
+    .single();
+  if (error) throw error;
+  return rowToPost(data as Row);
 }
 
 export function formatHebrewDate(iso: string): string {
