@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/my-supabase/client";
 
 export type Post = {
   slug: string;

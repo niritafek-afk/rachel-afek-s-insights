@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { addPost, CATEGORIES } from "@/lib/posts";
 import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/my-supabase/client";
 
 export const Route = createFileRoute("/admin")({
   component: Admin,
