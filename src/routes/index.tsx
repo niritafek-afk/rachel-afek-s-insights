@@ -56,7 +56,7 @@ function Index() {
           </h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             מאמרי דעה, מחשבות שניות ושאלות פתוחות – על פוליטיקה, חברה, תרבות
-            ואקטואליה בישראל. בלי כותרות צעקניות, בלי תשובות מהירות.
+            ואקטואליה בישראל.
           </p>
         </div>
       </section>
