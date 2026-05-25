@@ -33,7 +33,7 @@ function BlogIndex() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [q, setQ] = useState(search.q ?? "");
 
-  useEffect(() => setPosts(getAllPosts()), []);
+  useEffect(() => { getAllPosts().then(setPosts); }, []);
   useEffect(() => setQ(search.q ?? ""), [search.q]);
 
   const filtered = useMemo(() => {
