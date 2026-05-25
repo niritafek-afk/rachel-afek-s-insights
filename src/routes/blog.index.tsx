@@ -68,9 +68,13 @@ function BlogIndex() {
             <Input
               value={q}
               onChange={(e) => {
-                setQ(e.target.value);
+                const value = e.target.value;
+                setQ(value);
                 navigate({
-                  search: (s) => ({ ...s, q: e.target.value || undefined }),
+                  search: (s: { q?: string; category?: string }) => ({
+                    ...s,
+                    q: value || undefined,
+                  }),
                   replace: true,
                 });
               }}
@@ -124,7 +128,7 @@ function CategoryChip({
   return (
     <Link
       to="/blog"
-      search={(s) => ({ ...s, ...to })}
+      search={(s: { q?: string; category?: string }) => ({ ...s, ...to })}
       className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
         active
           ? "bg-primary text-primary-foreground border-primary"
