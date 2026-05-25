@@ -29,8 +29,8 @@ function Index() {
   const [featured, setFeatured] = useState<Post | null>(null);
 
   useEffect(() => {
-    setPosts(getAllPosts());
-    setFeatured(getFeaturedPost());
+    getAllPosts().then(setPosts);
+    getFeaturedPost().then(setFeatured);
   }, []);
 
   if (!featured) {

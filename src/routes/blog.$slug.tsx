@@ -17,7 +17,7 @@ function PostPage() {
   const [post, setPost] = useState<Post | null | undefined>(undefined);
 
   useEffect(() => {
-    setPost(getPostBySlug(slug) ?? null);
+    getPostBySlug(slug).then((p) => setPost(p ?? null));
   }, [slug]);
 
   if (post === undefined) {
